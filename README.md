@@ -10,5 +10,4 @@ https://github.com/microsoft/monaco-editor/issues/1915.
 - `yarn demo`
 - open http://localhost:8084/
 
-Currently, only the Python grammar and VS Code Dark+ themes are included in the
-demo.
+This fork includes only VSCode Dark theme and the Gherkin grammar

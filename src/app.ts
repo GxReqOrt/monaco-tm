@@ -22,7 +22,7 @@ interface DemoScopeNameInfo extends ScopeNameInfo {
   path: string;
 }
 
-main('python');
+main('gherkin');
 
 async function main(language: LanguageId) {
   // In this demo, the following values are hardcoded to support Python using
@@ -42,33 +42,15 @@ async function main(language: LanguageId) {
   // change the call to main() above to pass your LanguageId.
   const languages: monaco.languages.ILanguageExtensionPoint[] = [
     {
-      id: 'python',
-      extensions: [
-        '.py',
-        '.rpy',
-        '.pyw',
-        '.cpy',
-        '.gyp',
-        '.gypi',
-        '.pyi',
-        '.ipy',
-        '.bzl',
-        '.cconf',
-        '.cinc',
-        '.mcconf',
-        '.sky',
-        '.td',
-        '.tw',
-      ],
-      aliases: ['Python', 'py'],
-      filenames: ['Snakefile', 'BUILD', 'BUCK', 'TARGETS'],
-      firstLine: '^#!\\s*/?.*\\bpython[0-9.-]*\\b',
+      id: 'gherkin',
+      extensions: ['.feature'],
+      aliases: ['Gherkin', 'feature'],
     },
   ];
   const grammars: {[scopeName: string]: DemoScopeNameInfo} = {
-    'source.python': {
-      language: 'python',
-      path: 'MagicPython.tmLanguage.json',
+    'source.gherkin': {
+      language: 'gherkin',
+      path: 'Gherkin.tmLanguage.json',
     },
   };
 
@@ -145,15 +127,25 @@ async function loadVSCodeOnigurumWASM(): Promise<Response | ArrayBuffer> {
 }
 
 function getSampleCodeForLanguage(language: LanguageId): string {
-  if (language === 'python') {
-    return `\
-import foo
+  if (language === 'gherkin') {
+    return `#language: en
 
-async def bar(): string:
-  f = await foo()
-  f_string = f"Hooray {f}! format strings are not supported in current Monarch grammar"
-  return foo_string
-`;
+    Feature: Subscribers see different sets of stock images based on their subscription level 
+    
+    Scenario: Free subscribers see only the free articles
+      Given users with a free subscription can access "FreeArticle1" but not "PaidArticle1" 
+      When I type "freeFrieda@example.com" in the email field
+      And I type "validPassword123" in the password field
+      And I press the "Submit" button
+      Then I see "FreeArticle1" on the home page
+      And I do not see "PaidArticle1" on the home page
+    
+    Scenario: Subscriber with a paid subscription can access "FreeArticle1" and "PaidArticle1"
+      Given I am on the login page
+      When I type "paidPattya@example.com" in the email field
+      And I type "validPassword123" in the password field
+      And I press the "Submit" button
+      Then I see "FreeArticle1" and "PaidArticle1" on the home page `;
   }
 
   throw Error(`unsupported language: ${language}`);

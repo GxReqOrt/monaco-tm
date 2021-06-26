@@ -17,6 +17,8 @@ import {SimpleLanguageInfoProvider} from './providers';
 import {registerLanguages} from './register';
 import {rehydrateRegexps} from './configuration';
 import VsCodeDarkTheme from './vs-dark-plus-theme';
+import VsCodeLightTheme from './vs-light-theme';
+import {IRawTheme} from 'vscode-textmate';
 
 interface DemoScopeNameInfo extends ScopeNameInfo {
   path: string;
@@ -25,21 +27,9 @@ interface DemoScopeNameInfo extends ScopeNameInfo {
 main('gherkin');
 
 async function main(language: LanguageId) {
-  // In this demo, the following values are hardcoded to support Python using
-  // the VS Code Dark+ theme. Currently, end users are responsible for
-  // extracting the data from the relevant VS Code extensions themselves to
-  // leverage other TextMate grammars or themes. Scripts may be provided to
-  // facilitate this in the future.
-  //
-  // Note that adding a new TextMate grammar entails the following:
-  // - adding an entry in the languages array
-  // - adding an entry in the grammars map
-  // - making the TextMate file available in the grammars/ folder
-  // - making the monaco.languages.LanguageConfiguration available in the
-  //   configurations/ folder.
-  //
-  // You likely also want to add an entry in getSampleCodeForLanguage() and
-  // change the call to main() above to pass your LanguageId.
+  const themeKey = 'vs'; //'vs' -> Light; 'vs-dark' -> Dark
+  const readOnly = true;
+
   const languages: monaco.languages.ILanguageExtensionPoint[] = [
     {
       id: 'gherkin',
@@ -84,7 +74,7 @@ async function main(language: LanguageId) {
     fetchGrammar,
     configurations: languages.map((language) => language.id),
     fetchConfiguration,
-    theme: VsCodeDarkTheme,
+    theme: getTheme(themeKey),
     onigLib,
     monaco,
   });
@@ -104,10 +94,11 @@ async function main(language: LanguageId) {
   monaco.editor.create(element, {
     value,
     language,
-    theme: 'vs-dark',
+    theme: themeKey,
     minimap: {
       enabled: true,
     },
+    readOnly,
   });
   provider.injectCSS();
 }
@@ -145,8 +136,57 @@ function getSampleCodeForLanguage(language: LanguageId): string {
       When I type "paidPattya@example.com" in the email field
       And I type "validPassword123" in the password field
       And I press the "Submit" button
-      Then I see "FreeArticle1" and "PaidArticle1" on the home page `;
+      Then I see "FreeArticle1" and "PaidArticle1" on the home page
+      
+      
+#language: es
+
+  Feature: Alta usuario
+
+  Escenario: Datos del usuario correctos
+    Dado que el administrador quiere crear un usuario con los siguientes datos
+  
+      | ID          | Name      | Lastname  | Age | Country of Birth | Date of Birth      | 
+      | 4.885.371.8 | Guillermo | Churchill | 32  | Inglaterra       | 10-10-1989         | 
+      | 2.124.666.1 | Felipe    | Thatcher  | 99  | Grecia           | 09-08-1921         |  
+  
+     Cuando el administrador ingresa los datos requeridos
+  
+      | ID | Name | Lastname | 
+  
+     Entonces el sistema no muestra error y el usuario se da de alta de forma correcta.
+  
+  Escenario: Datos requeridos faltantes
+    Dado que el administrador quiere crear un usuario con los siguientes datos
+  
+      | ID          | Name      | Lastname  | Age | Country of Birth | Date of Birth      | 
+      | 4.885.371.8 | Guillermo | Churchill | 32  | Inglaterra       | 10-10-1989         | 
+      | 2.124.666.1 | Felipe    | Thatcher  | 99  | Grecia           | 09-08-1921         | 
+  
+     Cuando el administrador ingresa los siguientes datos
+  
+      | Name | Lastname | 
+  
+     Entonces el sistema indica que existe un error. Indica que el campo CI es requerido.
+  
+  Escenario: Valor de CI de usuario repetido
+    Dado que el administrador quiere crear un usuario con los siguientes datos
+  
+      | ID          | Name      | Lastname  | Age | Country of Birth | Date of Birth      | 
+      | 4.885.371.8 | Guillermo | Churchill | 32  | Inglaterra       | 10-10-1989         | 
+      | 4.885.371.8 | Felipe    | Thatcher  | 99  | Grecia           | 09-08-1921         | 
+  
+     Cuando el administrador ingresa los siguientes datos
+  
+      | ID | Name | Lastname | 
+  
+     Entonces el sistema muestra un error. Indica que ya existe un usuario registrado con esa CI.
+`;
   }
 
   throw Error(`unsupported language: ${language}`);
+}
+
+function getTheme(themeKey: string): IRawTheme {
+  return themeKey == 'vs' ? VsCodeLightTheme : VsCodeDarkTheme;
 }

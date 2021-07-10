@@ -1,3 +1,4 @@
+const CopyPlugin = require('copy-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
@@ -40,5 +41,16 @@ module.exports = {
   // https://github.com/NeekSandhu/monaco-editor-textmate/blame/45e137e5604504bcf744ef86215becbbb1482384/README.md#L58-L59
   //
   // Use the MonacoWebpackPlugin to disable all built-in tokenizers/languages.
-  plugins: [new MonacoWebpackPlugin({languages: ['gherkin']})],
+  plugins: [
+    new MonacoWebpackPlugin({languages: []}),
+    new CopyPlugin({
+      patterns: [
+        { from: "index.html", to: "index.html" },
+        { from: "index.css", to: "index.css" },
+        { from: "grammars", to: "grammars" },
+        { from: "configurations", to: "configurations" },
+        { from: "node_modules/vscode-oniguruma/release/onig.wasm", to: "onig.wasm" },
+      ],
+    })
+  ],
 };

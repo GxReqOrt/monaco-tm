@@ -44,5 +44,5 @@ module.exports = {
   // https://github.com/NeekSandhu/monaco-editor-textmate/blame/45e137e5604504bcf744ef86215becbbb1482384/README.md#L58-L59
   //
   // Use the MonacoWebpackPlugin to disable all built-in tokenizers/languages.
-  plugins: [new MonacoWebpackPlugin({languages: []})],
+  plugins: [new MonacoWebpackPlugin({languages: ['gherkin']})],
 };

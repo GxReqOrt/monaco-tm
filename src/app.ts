@@ -141,7 +141,7 @@ function getSampleCodeForLanguage(language: LanguageId): string {
       
 #language: es
 
-  Feature: Alta usuario
+  Característica: Alta usuario
 
   Escenario: Datos del usuario correctos
     Dado que el administrador quiere crear un usuario con los siguientes datos

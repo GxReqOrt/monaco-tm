@@ -14,7 +14,14 @@
       var SetText;
 
       SetText = function (x) {
-				editor.setValue(x);
+        const interval = setInterval(() => {
+          if (!editor) {
+            return;
+          }
+
+          clearInterval(interval);
+          editor.setValue(x);
+        }, 20);
 			}
     </script>
   </body>

@@ -50,7 +50,7 @@ async function main(language: LanguageId) {
 
   const fetchGrammar = async (scopeName: ScopeName): Promise<TextMateGrammar> => {
     const {path} = grammars[scopeName];
-    const uri = `/grammars/${path}`;
+    const uri = `grammars/${path}`;
     const response = await fetch(uri);
     const grammar = await response.text();
     const type = path.endsWith('.json') ? 'json' : 'plist';
@@ -60,14 +60,14 @@ async function main(language: LanguageId) {
   const fetchConfiguration = async (
     language: LanguageId,
   ): Promise<monaco.languages.LanguageConfiguration> => {
-    const uri = `/configurations/${language}.json`;
+    const uri = `configurations/${language}.json`;
     const response = await fetch(uri);
     const rawConfiguration = await response.text();
     return rehydrateRegexps(rawConfiguration);
   };
 
   const data: ArrayBuffer | Response = await loadVSCodeOnigurumWASM();
-  loadWASM(data);
+  await loadWASM(data);
   const onigLib = Promise.resolve({
     createOnigScanner,
     createOnigString,
@@ -110,7 +110,7 @@ async function main(language: LanguageId) {
 async function loadVSCodeOnigurumWASM(): Promise<Response | ArrayBuffer> {
   const response = await fetch(
     process.env.NODE_ENV === 'production'
-      ? '/onig.wasm'
+      ? 'onig.wasm'
       : '/node_modules/vscode-oniguruma/release/onig.wasm');
   const contentType = response.headers.get('content-type');
   if (contentType === 'application/wasm') {

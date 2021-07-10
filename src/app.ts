@@ -20,6 +20,10 @@ import VsCodeDarkTheme from './vs-dark-plus-theme';
 import VsCodeLightTheme from './vs-light-theme';
 import {IRawTheme} from 'vscode-textmate';
 
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Looks like we are in development mode!');
+}
+
 interface DemoScopeNameInfo extends ScopeNameInfo {
   path: string;
 }
@@ -84,15 +88,14 @@ async function main(language: LanguageId) {
     monaco,
   );
 
-  const value = getSampleCodeForLanguage(language);
   const id = 'container';
   const element = document.getElementById(id);
   if (element == null) {
     throw Error(`could not find element #${id}`);
   }
 
-  monaco.editor.create(element, {
-    value,
+  (window as any).editor = monaco.editor.create(element, {
+    value: '',
     language,
     theme: themeKey,
     minimap: {
@@ -105,7 +108,10 @@ async function main(language: LanguageId) {
 
 // Taken from https://github.com/microsoft/vscode/blob/829230a5a83768a3494ebbc61144e7cde9105c73/src/vs/workbench/services/textMate/browser/textMateService.ts#L33-L40
 async function loadVSCodeOnigurumWASM(): Promise<Response | ArrayBuffer> {
-  const response = await fetch('/onig.wasm');
+  const response = await fetch(
+    process.env.NODE_ENV === 'production'
+      ? '/onig.wasm'
+      : '/node_modules/vscode-oniguruma/release/onig.wasm');
   const contentType = response.headers.get('content-type');
   if (contentType === 'application/wasm') {
     return response;
@@ -115,76 +121,6 @@ async function loadVSCodeOnigurumWASM(): Promise<Response | ArrayBuffer> {
   // Otherwise, a TypeError is thrown when using the streaming compiler.
   // We therefore use the non-streaming compiler :(.
   return await response.arrayBuffer();
-}
-
-function getSampleCodeForLanguage(language: LanguageId): string {
-  if (language === 'gherkin') {
-    return `#language: en
-
-    Feature: Subscribers see different sets of stock images based on their subscription level 
-    
-    Scenario: Free subscribers see only the free articles
-      Given users with a free subscription can access "FreeArticle1" but not "PaidArticle1" 
-      When I type "freeFrieda@example.com" in the email field
-      And I type "validPassword123" in the password field
-      And I press the "Submit" button
-      Then I see "FreeArticle1" on the home page
-      And I do not see "PaidArticle1" on the home page
-    
-    Scenario: Subscriber with a paid subscription can access "FreeArticle1" and "PaidArticle1"
-      Given I am on the login page
-      When I type "paidPattya@example.com" in the email field
-      And I type "validPassword123" in the password field
-      And I press the "Submit" button
-      Then I see "FreeArticle1" and "PaidArticle1" on the home page
-      
-      
-#language: es
-
-  Característica: Alta usuario
-
-  Escenario: Datos del usuario correctos
-    Dado que el administrador quiere crear un usuario con los siguientes datos
-  
-      | ID          | Name      | Lastname  | Age | Country of Birth | Date of Birth      | 
-      | 4.885.371.8 | Guillermo | Churchill | 32  | Inglaterra       | 10-10-1989         | 
-      | 2.124.666.1 | Felipe    | Thatcher  | 99  | Grecia           | 09-08-1921         |  
-  
-     Cuando el administrador ingresa los datos requeridos
-  
-      | ID | Name | Lastname | 
-  
-     Entonces el sistema no muestra error y el usuario se da de alta de forma correcta.
-  
-  Escenario: Datos requeridos faltantes
-    Dado que el administrador quiere crear un usuario con los siguientes datos
-  
-      | ID          | Name      | Lastname  | Age | Country of Birth | Date of Birth      | 
-      | 4.885.371.8 | Guillermo | Churchill | 32  | Inglaterra       | 10-10-1989         | 
-      | 2.124.666.1 | Felipe    | Thatcher  | 99  | Grecia           | 09-08-1921         | 
-  
-     Cuando el administrador ingresa los siguientes datos
-  
-      | Name | Lastname | 
-  
-     Entonces el sistema indica que existe un error. Indica que el campo CI es requerido.
-  
-  Escenario: Valor de CI de usuario repetido
-    Dado que el administrador quiere crear un usuario con los siguientes datos
-  
-      | ID          | Name      | Lastname  | Age | Country of Birth | Date of Birth      | 
-      | 4.885.371.8 | Guillermo | Churchill | 32  | Inglaterra       | 10-10-1989         | 
-      | 4.885.371.8 | Felipe    | Thatcher  | 99  | Grecia           | 09-08-1921         | 
-  
-     Cuando el administrador ingresa los siguientes datos
-  
-      | ID | Name | Lastname | 
-  
-     Entonces el sistema muestra un error. Indica que ya existe un usuario registrado con esa CI.
-`;
-  }
-
-  throw Error(`unsupported language: ${language}`);
 }
 
 function getTheme(themeKey: string): IRawTheme {

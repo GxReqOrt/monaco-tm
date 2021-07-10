@@ -1,4 +1,3 @@
-const CopyPlugin = require('copy-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
@@ -43,14 +42,5 @@ module.exports = {
   // Use the MonacoWebpackPlugin to disable all built-in tokenizers/languages.
   plugins: [
     new MonacoWebpackPlugin({languages: []}),
-    new CopyPlugin({
-      patterns: [
-        { from: "index.html", to: "index.html" },
-        { from: "index.css", to: "index.css" },
-        { from: "grammars", to: "grammars" },
-        { from: "configurations", to: "configurations" },
-        { from: "node_modules/vscode-oniguruma/release/onig.wasm", to: "onig.wasm" },
-      ],
-    })
   ],
 };

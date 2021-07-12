@@ -1,4 +1,16 @@
-#container {
-  height: 1000px;
-  width: 800px;
+body:root {
+	--gx-le-table-cell-border: 1px dashed black;
+	--gx-le-table-placeholder-width: 8px;
+	--gx-le-table-placeholder-height: 8px;
+	--gx-le-table-min-height: 24px;
+	--gx-le-table-placeholder-color: #234783;
+}
+
+gx-layout-editor {
+	min-height: 100vh;
+}
+
+.gx-container-part {
+	width: 100%;
+	height:100vh;
 }

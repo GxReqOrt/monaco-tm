@@ -28,7 +28,9 @@ main('gherkin');
 
 async function main(language: LanguageId) {
   const themeKey = 'vs'; //'vs' -> Light; 'vs-dark' -> Dark
-  const readOnly = true;
+  const readOnly = false;
+
+  addSnippets();
 
   const languages: monaco.languages.ILanguageExtensionPoint[] = [
     {
@@ -63,7 +65,7 @@ async function main(language: LanguageId) {
   };
 
   const data: ArrayBuffer | Response = await loadVSCodeOnigurumWASM();
-  loadWASM(data);
+  await loadWASM(data);
   const onigLib = Promise.resolve({
     createOnigScanner,
     createOnigString,
@@ -91,7 +93,7 @@ async function main(language: LanguageId) {
     throw Error(`could not find element #${id}`);
   }
 
-  monaco.editor.create(element, {
+  const editor = monaco.editor.create(element, {
     value,
     language,
     theme: themeKey,
@@ -100,7 +102,22 @@ async function main(language: LanguageId) {
     },
     readOnly,
   });
+
   provider.injectCSS();
+
+  (window as any).activeEditor = editor;
+  editor.addAction({
+    id: 'insert-text-at-cusor-command',
+    label: 'Command Snippet',
+    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.F10],
+    contextMenuGroupId: 'snippets',
+    contextMenuOrder: 1.5,
+    run: function (ed) {
+      (window as any).activeEditor
+        .focus()(window as any)
+        .activeEditor.trigger('keyboard', 'type', {text: 'for'});
+    },
+  });
 }
 
 // Taken from https://github.com/microsoft/vscode/blob/829230a5a83768a3494ebbc61144e7cde9105c73/src/vs/workbench/services/textMate/browser/textMateService.ts#L33-L40
@@ -189,4 +206,31 @@ function getSampleCodeForLanguage(language: LanguageId): string {
 
 function getTheme(themeKey: string): IRawTheme {
   return themeKey == 'vs' ? VsCodeLightTheme : VsCodeDarkTheme;
+}
+
+function addSnippets(): void {
+  monaco.languages.registerCompletionItemProvider('gherkin', {
+    provideCompletionItems: getSnippets,
+  });
+}
+
+function getSnippets(): any {
+  return {
+    suggestions: [
+      {
+        label: 'enft',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        documentation: 'Create a simple feature with English keywords',
+        insertText: [
+          '#language: en',
+          '\t Feature: feature short description',
+          '',
+          '\t Scenario: scenario short description',
+          '\t \t Given context',
+          '\t \t When condition',
+          '\t \t Then result',
+        ].join('\n'),
+      },
+    ],
+  };
 }

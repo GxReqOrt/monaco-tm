@@ -12,6 +12,7 @@ module.exports = merge(common, {
         { from: "grammars", to: "grammars" },
         { from: "configurations", to: "configurations" },
         { from: "node_modules/vscode-oniguruma/release/onig.wasm", to: "onig.wasm" },
+        { from: "localization", to: "localization" },
       ],
     })
   ],

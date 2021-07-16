@@ -19,6 +19,7 @@ import {rehydrateRegexps} from './configuration';
 import VsCodeDarkTheme from './vs-dark-plus-theme';
 import VsCodeLightTheme from './vs-light-theme';
 import {IRawTheme} from 'vscode-textmate';
+import {getSnippets} from './snippetsProvider';
 
 if (process.env.NODE_ENV !== 'production') {
   console.log('Looks like we are in development mode!');
@@ -107,19 +108,6 @@ async function main(language: LanguageId) {
   });
 
   provider.injectCSS();
-
-  (window as any).editor.addAction({
-    id: 'insert-text-at-cusor-command',
-    label: 'Command Snippet',
-    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.F10],
-    contextMenuGroupId: 'snippets',
-    contextMenuOrder: 1.5,
-    run: function () {
-      (window as any).activeEditor
-        .focus()(window as any)
-        .activeEditor.trigger('keyboard', 'type', {text: 'for'});
-    },
-  });
 }
 
 // Taken from https://github.com/microsoft/vscode/blob/829230a5a83768a3494ebbc61144e7cde9105c73/src/vs/workbench/services/textMate/browser/textMateService.ts#L33-L40
@@ -127,7 +115,8 @@ async function loadVSCodeOnigurumWASM(): Promise<Response | ArrayBuffer> {
   const response = await fetch(
     process.env.NODE_ENV === 'production'
       ? 'onig.wasm'
-      : '/node_modules/vscode-oniguruma/release/onig.wasm');
+      : '/node_modules/vscode-oniguruma/release/onig.wasm',
+  );
   const contentType = response.headers.get('content-type');
   if (contentType === 'application/wasm') {
     return response;
@@ -145,27 +134,12 @@ function getTheme(themeKey: string): IRawTheme {
 
 function addSnippets(): void {
   monaco.languages.registerCompletionItemProvider('gherkin', {
-    provideCompletionItems: getSnippets,
+    provideCompletionItems: getSuggestions,
   });
 }
 
-function getSnippets(): any {
+function getSuggestions(): any {
   return {
-    suggestions: [
-      {
-        label: 'enft',
-        kind: monaco.languages.CompletionItemKind.Snippet,
-        documentation: 'Create a simple feature with English keywords',
-        insertText: [
-          '#language: en',
-          '\t Feature: feature short description',
-          '',
-          '\t Scenario: scenario short description',
-          '\t \t Given context',
-          '\t \t When condition',
-          '\t \t Then result',
-        ].join('\n'),
-      },
-    ],
+    suggestions: getSnippets(),
   };
 }

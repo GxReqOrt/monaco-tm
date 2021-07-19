@@ -1,5 +1,10 @@
+let translation: any = null;
+
 export const L = (key: string): string => {
-  const translation = getTranslation();
+  if (!translation) {
+    translation = getTranslation();
+  }
+  
   return translation[key] ?? key;
 };
 

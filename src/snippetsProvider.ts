@@ -6,6 +6,7 @@ interface Snippet {
   kind: number;
   documentation: string;
   insertText: string;
+  insertTextRules: number;
 }
 
 export const getSnippets = (): Snippet[] => [
@@ -28,12 +29,12 @@ export const getSnippets = (): Snippet[] => [
 const feature = (): Snippet => {
   const lines = [
     `#${L('language')}: ${L('languagePrefix')}`,
-    `\t${L('feature')}: ${L('featureDescription')}`,
+    `\t${L('feature')}: \${1:${L('featureDescription')}}`,
     '',
-    `\t${L('scenario')}: ${L('scenarioDescription')}`,
-    `\t\t${L('given')} ${L('context')}`,
-    `\t\t${L('when')} ${L('condition')}`,
-    `\t\t${L('then')} ${L('result')}`,
+    `\t${L('scenario')}: \${2:${L('scenarioDescription')}}`,
+    `\t\t${L('given')} \${3:${L('context')}}`,
+    `\t\t${L('when')} \${4:${L('condition')}}`,
+    `\t\t${L('then')} \${5:${L('result')}}`,
   ];
 
   const documentation = L('featureDocumentation');
@@ -43,10 +44,10 @@ const feature = (): Snippet => {
 
 const scenario = (): Snippet => {
   const lines = [
-    `${L('scenario')}: ${L('scenarioDescription')}`,
-    `\t${L('given')} ${L('context')}`,
-    `\t${L('when')} ${L('condition')}`,
-    `\t${L('then')} ${L('result')}`,
+    `${L('scenario')}: \${1:${L('scenarioDescription')}}`,
+    `\t${L('given')} \${2:${L('context')}}`,
+    `\t${L('when')} \${3:${L('condition')}}`,
+    `\t${L('then')} \${4:${L('result')}}`,
   ];
   const documentation = L('scenarioDocumentation');
 
@@ -62,16 +63,29 @@ const table = (itemRows: number, columns: number): Snippet => {
 };
 
 const getHeader = (columns: number): string => {
-  return '|' + ` ${L('head')}  |`.repeat(columns);
+  let header: string = '|';
+  for (let i = 0; i < columns; i++) {
+    header += ` \${${i + 1}:${L('head')}}  |`;
+  }
+  return header;
 };
 
 const getItemRows = (rows: number, columns: number): string[] => {
-  const row = getItemRow(columns);
-  return [...Array(rows)].map(() => row);
-};
+  const items: string[] = [];
+  let item: string = '|';
+  let position = columns + 1;
+  
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < columns; j++) {
+      item += ` \${${position}:${L('value')}}  |`;
+      position++;
+    }
 
-const getItemRow = (columns: number): string => {
-  return '|' + ` ${L('value')} |`.repeat(columns);
+    items.push(item);
+    item = '|';
+  }
+
+  return items;
 };
 
 const buildSnippet = (label: string, documentation: string, lines: string[]): Snippet => {
@@ -80,5 +94,6 @@ const buildSnippet = (label: string, documentation: string, lines: string[]): Sn
     documentation,
     kind: monaco.languages.CompletionItemKind.Snippet,
     insertText: lines.join('\n'),
+    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
   };
 };

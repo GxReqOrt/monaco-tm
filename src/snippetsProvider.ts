@@ -9,75 +9,75 @@ interface Snippet {
   insertTextRules: number;
 }
 
-export const getSnippets = (): Snippet[] => [
-  feature(),
-  scenario(),
-  table(0, 2),
-  table(0, 3),
-  table(0, 4),
-  table(0, 5),
-  table(0, 6),
-  table(0, 7),
-  table(1, 2),
-  table(2, 3),
-  table(3, 4),
-  table(4, 5),
-  table(5, 6),
-  table(6, 7),
+export const getSnippets = async (): Promise<Snippet[]> => [
+  await feature(),
+  await scenario(),
+  await table(0, 2),
+  await table(0, 3),
+  await table(0, 4),
+  await table(0, 5),
+  await table(0, 6),
+  await table(0, 7),
+  await table(1, 2),
+  await table(2, 3),
+  await table(3, 4),
+  await table(4, 5),
+  await table(5, 6),
+  await table(6, 7),
 ];
 
-const feature = (): Snippet => {
+const feature = async (): Promise<Snippet> => {
   const lines = [
-    `#${L('language')}: ${L('languagePrefix')}`,
-    `\t${L('feature')}: \${1:${L('featureDescription')}}`,
+    `#${await L('language')}: ${await L('languagePrefix')}`,
+    `\t${await L('feature')}: \${1:${await L('featureDescription')}}`,
     '',
-    `\t${L('scenario')}: \${2:${L('scenarioDescription')}}`,
-    `\t\t${L('given')} \${3:${L('context')}}`,
-    `\t\t${L('when')} \${4:${L('condition')}}`,
-    `\t\t${L('then')} \${5:${L('result')}}`,
+    `\t${await L('scenario')}: \${2:${await L('scenarioDescription')}}`,
+    `\t\t${await L('given')} \${3:${await L('context')}}`,
+    `\t\t${await L('when')} \${4:${await L('condition')}}`,
+    `\t\t${await L('then')} \${5:${await L('result')}}`,
   ];
 
-  const documentation = L('featureDocumentation');
+  const documentation = await L('featureDocumentation');
 
-  return buildSnippet(L('feature'), documentation, lines);
+  return buildSnippet(await L('feature'), documentation, lines);
 };
 
-const scenario = (): Snippet => {
+const scenario = async (): Promise<Snippet> => {
   const lines = [
-    `${L('scenario')}: \${1:${L('scenarioDescription')}}`,
-    `\t${L('given')} \${2:${L('context')}}`,
-    `\t${L('when')} \${3:${L('condition')}}`,
-    `\t${L('then')} \${4:${L('result')}}`,
+    `${await L('scenario')}: \${1:${await L('scenarioDescription')}}`,
+    `\t${await L('given')} \${2:${await L('context')}}`,
+    `\t${await L('when')} \${3:${await L('condition')}}`,
+    `\t${await L('then')} \${4:${await L('result')}}`,
   ];
-  const documentation = L('scenarioDocumentation');
+  const documentation = await L('scenarioDocumentation');
 
-  return buildSnippet(L('scenario'), documentation, lines);
+  return buildSnippet(await L('scenario'), documentation, lines);
 };
 
-const table = (itemRows: number, columns: number): Snippet => {
-  const lines = [getHeader(columns), ...getItemRows(itemRows, columns)];
+const table = async (itemRows: number, columns: number): Promise<Snippet> => {
+  const lines = [await getHeader(columns), ... await getItemRows(itemRows, columns)];
 
-  const documentation = L('tableDocumentation');
+  const documentation = await L('tableDocumentation');
 
-  return buildSnippet(`${L('table')}${itemRows + 1}x${columns}`, documentation, lines);
+  return buildSnippet(`${await L('table')}${itemRows + 1}x${columns}`, documentation, lines);
 };
 
-const getHeader = (columns: number): string => {
+const getHeader = async (columns: number): Promise<string> => {
   let header: string = '|';
   for (let i = 0; i < columns; i++) {
-    header += ` \${${i + 1}:${L('head')}}  |`;
+    header += ` \${${i + 1}:${await L('head')}}   |`;
   }
   return header;
 };
 
-const getItemRows = (rows: number, columns: number): string[] => {
+const getItemRows = async (rows: number, columns: number): Promise<string[]> => {
   const items: string[] = [];
   let item: string = '|';
   let position = columns + 1;
   
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < columns; j++) {
-      item += ` \${${position}:${L('value')}}  |`;
+      item += ` \${${position}:${await L('value')}}  |`;
       position++;
     }
 

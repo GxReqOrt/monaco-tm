@@ -1,18 +1,31 @@
-let translation: any = null;
+type Dictionary = {[id: string]: string};
 
-export const L = (key: string): string => {
-  if (!translation) {
-    translation = getTranslation();
+const basePath = 'src/localization';
+
+let translation: Dictionary = {};
+
+export const L = async (key: string): Promise<string> => {
+  if (!Object.keys(translation).length) {
+    await setTranslation();
   }
-  
+
   return translation[key] ?? key;
 };
 
-const getTranslation = (): any => {
+const setTranslation = async (): Promise<void> => {
+  translation = await getTranslation();
+};
+
+const getTranslation = async (): Promise<Dictionary> => {
+  let translation = {}
   try {
-    const browserLanguage = navigator.language.split('-')[0];
-    return require(`./${browserLanguage}`).translations;
+    const [browserLanguage] = navigator.language.split('-');
+    const response = await fetch(`${basePath}/${browserLanguage}.json`);
+    translation = await response.json();
   } catch (e) {
-    return require('./en').translations;
+    const response = await fetch(`${basePath}/en.json`);
+    translation = await response.json();
+  } finally {
+    return translation;
   }
 };

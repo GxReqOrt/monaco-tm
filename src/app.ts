@@ -138,8 +138,8 @@ function addSnippets(): void {
   });
 }
 
-function getSuggestions(): any {
+async function getSuggestions(): Promise<monaco.languages.ProviderResult<any>> {
   return {
-    suggestions: getSnippets(),
+    suggestions: await getSnippets(),
   };
 }

@@ -20,6 +20,8 @@ import VsCodeDarkTheme from './vs-dark-plus-theme';
 import VsCodeLightTheme from './vs-light-theme';
 import {IRawTheme} from 'vscode-textmate';
 
+const actions: any = require('monaco-editor/esm/vs/platform/actions/common/actions');
+
 if (process.env.NODE_ENV !== 'production') {
   console.log('Looks like we are in development mode!');
 }
@@ -94,7 +96,7 @@ async function main(language: LanguageId) {
     throw Error(`could not find element #${id}`);
   }
 
-  (window as any).editor = monaco.editor.create(element, {
+  const editor = monaco.editor.create(element, {
     value: '',
     language,
     theme: themeKey,
@@ -103,6 +105,27 @@ async function main(language: LanguageId) {
     },
     readOnly,
   });
+
+  let menus = actions.MenuRegistry._menuItems;
+  let contextMenuEntry = [...menus].find((entry) => entry[0]._debugName == 'EditorContext');
+  let contextMenuLinks = contextMenuEntry[1];
+
+  let removableIds = ['editor.action.quickCommand'];
+
+  let removeById = (list: any, ids: any) => {
+    let node = list._first;
+    do {
+      let shouldRemove = ids.includes(node.element?.command?.id);
+      if (shouldRemove) {
+        list._remove(node);
+      }
+    } while ((node = node.next));
+  };
+
+  removeById(contextMenuLinks, removableIds);
+
+  (window as any).editor = editor;
+  
   provider.injectCSS();
 }
 

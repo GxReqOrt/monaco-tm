@@ -20,6 +20,8 @@ import VsCodeDarkTheme from './vs-dark-plus-theme';
 import VsCodeLightTheme from './vs-light-theme';
 import {IRawTheme} from 'vscode-textmate';
 
+const actions: any = require('monaco-editor/esm/vs/platform/actions/common/actions');
+
 if (process.env.NODE_ENV !== 'production') {
   console.log('Looks like we are in development mode!');
 }
@@ -94,7 +96,7 @@ async function main(language: LanguageId) {
     throw Error(`could not find element #${id}`);
   }
 
-  (window as any).editor = monaco.editor.create(element, {
+  const editor = monaco.editor.create(element, {
     value: '',
     language,
     theme: themeKey,
@@ -102,8 +104,101 @@ async function main(language: LanguageId) {
       enabled: true,
     },
     readOnly,
+    scrollBeyondLastLine: false,
+    wordWrap: 'on'
   });
   provider.injectCSS();
+
+  // disable opening command palette
+  editor.onKeyDown(e => {
+    if (e.keyCode === monaco.KeyCode.F1) {
+      e.stopPropagation();
+    }
+  });
+
+  // remove Command Palette from context menu
+  let menus = actions.MenuRegistry._menuItems;
+  let contextMenuEntry = [...menus].find((entry) => entry[0]._debugName == 'EditorContext');
+  let contextMenuLinks = contextMenuEntry[1];
+
+  let removableIds = ['editor.action.quickCommand'];
+
+  let removeById = (list: any, ids: any) => {
+    let node = list._first;
+    do {
+      let shouldRemove = ids.includes(node.element?.command?.id);
+      if (shouldRemove) {
+        list._remove(node);
+      }
+    } while ((node = node.next));
+  };
+
+  removeById(contextMenuLinks, removableIds);
+
+  let cursorPosition: number;
+  editor.onDidChangeCursorPosition(e => {
+    cursorPosition = e.position.lineNumber;
+  });
+
+  const scenarioTitles = () => {
+    const ret: [number, string][] = [];
+    const currentValue = editor.getValue();
+
+    const lines = currentValue.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('Scenario:')) {
+        ret.push([i + 1, line]);
+      }
+    }
+
+    return ret;
+  };
+
+  const extractScenarioName = () => {
+    const closestTitleToCursor = scenarioTitles()
+        .map(([idx, line]) => [cursorPosition - idx, line])
+        .filter(([distance]) => distance >= 0)
+        // no need to sort, they already come in order
+        .map(([, line]) => line)
+        .pop() as string | undefined;
+
+      if (!closestTitleToCursor) {
+        // let the user know through gx they're an idiot
+        return;
+      }
+
+      return closestTitleToCursor.replace('Scenario: ', '');
+  }
+
+  editor.addAction({
+    id: 'gxreq-transaction-gen',
+    label: 'GxReq: Generate transaction',
+    contextMenuGroupId: 'navigation',
+    run: () => {
+      (window.external as any).GenerateTransaction(extractScenarioName());
+    },
+  });
+
+  editor.addAction({
+    id: 'gxreq-procedure-gen',
+    label: 'GxReq: Generate procedure',
+    contextMenuGroupId: 'navigation',
+    run: () => {
+      (window.external as any).GenerateProcedure(extractScenarioName());
+    },
+  });
+
+  editor.addAction({
+    id: 'gxreq-test-gen',
+    label: 'GxReq: Generate procedure w/tests',
+    contextMenuGroupId: 'navigation',
+    run: () => {
+      (window.external as any).GenerateProcedureWithTests(extractScenarioName());
+    },
+  });
+
+  (window as any).editor = editor;
 }
 
 // Taken from https://github.com/microsoft/vscode/blob/829230a5a83768a3494ebbc61144e7cde9105c73/src/vs/workbench/services/textMate/browser/textMateService.ts#L33-L40

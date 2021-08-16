@@ -1,3 +1,12 @@
+html,
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
 body:root {
 	--gx-le-table-cell-border: 1px dashed black;
 	--gx-le-table-placeholder-width: 8px;
@@ -12,5 +21,5 @@ gx-layout-editor {
 
 .gx-container-part {
 	width: 100%;
-	height:100vh;
+	height:100%;
 }

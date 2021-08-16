@@ -94,7 +94,7 @@ async function main(language: LanguageId) {
     throw Error(`could not find element #${id}`);
   }
 
-  (window as any).editor = monaco.editor.create(element, {
+  const editor = monaco.editor.create(element, {
     value: '',
     language,
     theme: themeKey,
@@ -104,6 +104,50 @@ async function main(language: LanguageId) {
     readOnly,
   });
   provider.injectCSS();
+
+  let cursorPosition: number;
+  editor.onDidChangeCursorPosition(e => {
+    cursorPosition = e.position.lineNumber;
+  });
+
+  const scenarioTitles = () => {
+    const ret: [number, string][] = [];
+    const currentValue = editor.getValue();
+
+    const lines = currentValue.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('Scenario:')) {
+        ret.push([i + 1, line]);
+      }
+    }
+
+    return ret;
+  };
+
+  editor.addAction({
+    id: 'gxreq-transaction-gen',
+    label: 'GxReq: Generate transaction',
+    contextMenuGroupId: 'navigation',
+    run: () => {
+      const closestTitleToCursor = scenarioTitles()
+        .map(([idx, line]) => [cursorPosition - idx, line])
+        .filter(([distance]) => distance >= 0)
+        // no need to sort, they already come in order
+        .map(([, line]) => line)
+        .pop() as string | undefined;
+
+      if (!closestTitleToCursor) {
+        // let the user know through gx they're an idiot
+        return;
+      }
+
+      const scenarioName = closestTitleToCursor.replace('Scenario: ', '');
+      (window.external as any).TriggerObjectGeneration(scenarioName);
+    },
+  });
+
+  (window as any).editor = editor;
 }
 
 // Taken from https://github.com/microsoft/vscode/blob/829230a5a83768a3494ebbc61144e7cde9105c73/src/vs/workbench/services/textMate/browser/textMateService.ts#L33-L40

@@ -1,0 +1,19 @@
+{
+  "language": "lenguaje",
+  "languagePrefix": "es",
+  "feature": "Característica",
+  "featureDescription": "Breve descripción de la característica",
+  "scenario": "Escenario",
+  "scenarioDescription": "Breve descripción del escenario",
+  "given": "Dado",
+  "when": "Cuando",
+  "then": "Entonces",
+  "context": "contexto",
+  "condition": "condición",
+  "result": "resultado",
+  "featureDocumentation": "Crear una característica",
+  "scenarioDocumentation": "Crear un escenario",
+  "head": "cabezal",
+  "value": "valor",
+  "table": "tabla"
+}

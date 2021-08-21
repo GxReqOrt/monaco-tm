@@ -19,6 +19,7 @@ import {rehydrateRegexps} from './configuration';
 import VsCodeDarkTheme from './vs-dark-plus-theme';
 import VsCodeLightTheme from './vs-light-theme';
 import {IRawTheme} from 'vscode-textmate';
+import {getSnippets} from './snippetsProvider';
 
 const actions: any = require('monaco-editor/esm/vs/platform/actions/common/actions');
 
@@ -34,7 +35,9 @@ main('gherkin');
 
 async function main(language: LanguageId) {
   const themeKey = 'vs'; //'vs' -> Light; 'vs-dark' -> Dark
-  const readOnly = true;
+  const readOnly = false;
+
+  addSnippets();
 
   const languages: monaco.languages.ILanguageExtensionPoint[] = [
     {
@@ -107,6 +110,7 @@ async function main(language: LanguageId) {
     scrollBeyondLastLine: false,
     wordWrap: 'on'
   });
+
   provider.injectCSS();
 
   // disable opening command palette
@@ -206,7 +210,8 @@ async function loadVSCodeOnigurumWASM(): Promise<Response | ArrayBuffer> {
   const response = await fetch(
     process.env.NODE_ENV === 'production'
       ? 'onig.wasm'
-      : '/node_modules/vscode-oniguruma/release/onig.wasm');
+      : '/node_modules/vscode-oniguruma/release/onig.wasm',
+  );
   const contentType = response.headers.get('content-type');
   if (contentType === 'application/wasm') {
     return response;
@@ -220,4 +225,16 @@ async function loadVSCodeOnigurumWASM(): Promise<Response | ArrayBuffer> {
 
 function getTheme(themeKey: string): IRawTheme {
   return themeKey == 'vs' ? VsCodeLightTheme : VsCodeDarkTheme;
+}
+
+function addSnippets(): void {
+  monaco.languages.registerCompletionItemProvider('gherkin', {
+    provideCompletionItems: getSuggestions,
+  });
+}
+
+async function getSuggestions(): Promise<monaco.languages.ProviderResult<any>> {
+  return {
+    suggestions: await getSnippets(),
+  };
 }

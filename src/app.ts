@@ -104,6 +104,8 @@ async function main(language: LanguageId) {
       enabled: true,
     },
     readOnly,
+    scrollBeyondLastLine: false,
+    wordWrap: 'on'
   });
   provider.injectCSS();
 

@@ -140,6 +140,9 @@ async function main(language: LanguageId) {
     cursorPosition = e.position.lineNumber;
   });
 
+  const { grammar } = await fetchGrammar('source.gherkin');
+  const featureKeywordRegex = new RegExp(JSON.parse(grammar).repository.feature_element_keyword.match);
+
   const scenarioTitles = () => {
     const ret: [number, string][] = [];
     const currentValue = editor.getValue();
@@ -147,7 +150,7 @@ async function main(language: LanguageId) {
     const lines = currentValue.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      if (line.startsWith('Scenario:')) {
+      if (line.match(featureKeywordRegex)) {
         ret.push([i + 1, line]);
       }
     }
@@ -168,7 +171,8 @@ async function main(language: LanguageId) {
         return;
       }
 
-      return closestTitleToCursor.replace('Scenario: ', '');
+      const matches = featureKeywordRegex.exec(closestTitleToCursor);
+      return matches!![2].trim();
   }
 
   editor.addAction({
@@ -176,6 +180,7 @@ async function main(language: LanguageId) {
     label: 'Generate transaction',
     contextMenuGroupId: 'navigation',
     run: () => {
+      console.log(extractScenarioName());
       (window.external as any).GenerateTransaction(extractScenarioName());
     },
   });
